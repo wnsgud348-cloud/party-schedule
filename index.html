@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17243b">
+<title>파티 시간표</title>
+<link rel="manifest" href="./manifest.json">
+<style>
+:root{color-scheme:dark;--bg:#0d1422;--panel:#172238;--panel2:#202f49;--line:#31415d;--text:#f3f6fc;--muted:#a8b5ca;--accent:#86aefc;--accent2:#b7ccff;--danger:#ff8e9a}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#17243b 0,#0d1422 340px);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;min-height:100vh}
+main{max-width:650px;margin:auto;padding:22px 16px calc(36px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;gap:12px;margin:4px 0 22px}.logo{width:48px;height:48px;border-radius:16px;background:#314f86;display:grid;place-items:center;font-size:25px;box-shadow:0 8px 24px #0003}
+h1{font-size:23px;margin:0;letter-spacing:-.5px}header p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.card{background:rgba(23,34,56,.94);border:1px solid var(--line);border-radius:20px;padding:16px;margin:14px 0;box-shadow:0 10px 30px #0002}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.day{border:1px solid var(--line);background:#1b2940;color:var(--muted);border-radius:12px;padding:12px 0;font-size:14px;font-weight:700}.day.active{background:var(--accent);color:#14213a;border-color:var(--accent)}
+.sectiontop{display:flex;align-items:center;justify-content:space-between;gap:8px}.sectiontop h2{font-size:18px;margin:0}.sub{color:var(--muted);font-size:12px;margin-top:5px}
+.pill{font-size:12px;border-radius:99px;background:#2c3d59;color:var(--accent2);padding:6px 10px;white-space:nowrap}
+.party{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #2d3b53}.party:last-child{border-bottom:0}.timebox{width:72px;flex-shrink:0;text-align:center;padding:10px 4px;border-radius:12px;background:#253a5b;color:#dce7ff;font-weight:800;font-size:14px}.partyinfo{min-width:0;flex:1}.partyname{font-weight:750;overflow-wrap:anywhere}.note{font-size:12px;color:var(--muted);margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}.actions{display:flex;gap:5px}.iconbtn{border:1px solid var(--line);background:#1c2a41;color:var(--text);border-radius:10px;padding:8px;font-size:15px}
+.empty{text-align:center;padding:28px 10px;color:var(--muted);font-size:14px}.empty b{display:block;color:var(--text);font-size:16px;margin-bottom:7px}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}input,textarea,select{width:100%;border:1px solid var(--line);background:#0f192a;color:var(--text);border-radius:12px;padding:12px;font:inherit;font-size:15px;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--accent)}textarea{resize:vertical;min-height:72px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.btn{border:0;border-radius:12px;background:var(--accent);color:#13203a;font-weight:800;padding:13px 15px;font-size:15px;width:100%;margin-top:14px}.btn.secondary{background:#263752;color:var(--text);border:1px solid var(--line)}.btn.danger{background:#542b3b;color:#ffdce1}.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px}.smallprint{color:#8796ad;font-size:11px;line-height:1.55;margin:16px 4px}
+.weekday-row{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:12px 0;border-bottom:1px solid #2d3b53;cursor:pointer}
+.weekday-row:last-child{border-bottom:0}
+.weekday-label{font-weight:800;color:var(--accent2);padding-top:2px}
+.weekday-items{display:flex;flex-wrap:wrap;gap:6px}
+.week-chip{background:#25344d;border:1px solid #3a4c69;border-radius:9px;padding:7px 9px;font-size:12px;line-height:1.35}
+.week-chip b{color:#fff;font-weight:750}
+.week-chip span{display:block;color:#c4d2e7;margin-top:2px}
+.week-empty{font-size:12px;color:#7788a2;padding:4px 0}
+.weekday-row.today-selected{background:#1b2a42;border-radius:10px;padding-left:8px;padding-right:8px}
+.hidden{display:none!important}
+@media(min-width:520px){main{padding-top:32px}.card{padding:20px}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="logo">🎮</div><div><h1>파티 시간표</h1><p>요일별로 정리하는 나만의 게임 일정</p></div></header>
+<section class="card">
+  <div class="sectiontop"><h2>기기 간 동기화</h2><span class="pill">개인 계정</span></div>
+  <div class="sub" id="userLabel" style="margin:8px 0">로그인 상태 확인 중…</div>
+  <div class="sectiontop" style="margin-top:12px">
+    <div id="syncStatus" class="sub">동기화 상태 확인 중…</div>
+    <button class="iconbtn" id="authBtn" disabled>Google로 로그인</button>
+  </div>
+  <p class="sub" id="authHint" style="line-height:1.6">같은 Google 계정으로 로그인하면 PC와 폰에서 같은 일정을 볼 수 있어요.</p>
+</section>
+<section class="card">
+  <div class="sectiontop"><h2>요일 선택</h2><span class="pill">날짜 없이 관리</span></div>
+  <p class="sub">요일을 누르면 해당 요일의 파티가 표시돼요.</p>
+  <div class="days" id="days" style="margin-top:14px"></div>
+</section>
+<section class="card">
+  <div class="sectiontop"><div><h2 id="listTitle">월요일 파티</h2><div class="sub" id="count">등록된 파티 0개</div></div><span class="pill">내 기기에 저장</span></div>
+  <div id="partyList"></div>
+  <button class="btn" id="newBtn">＋ 파티 추가</button>
+</section>
+<section class="card">
+  <div class="sectiontop"><h2>주간 한눈에 보기</h2><span class="pill">월~일 전체</span></div>
+  <p class="sub">등록한 일정이 요일별로 모두 표시돼요. 요일을 누르면 그날 일정으로 이동합니다.</p>
+  <div id="weekOverview" style="margin-top:10px"></div>
+</section>
+<section class="card hidden" id="editor">
+  <div class="sectiontop"><h2 id="formTitle">파티 추가</h2><button class="iconbtn" id="closeEditor" aria-label="닫기">✕</button></div>
+  <form id="partyForm">
+    <label for="name">파티명 / 보스명 *</label><input id="name" maxlength="70" placeholder="예: 하드 칼로스" required>
+    <div class="formgrid">
+      <div><label for="time">시간</label><input id="time" placeholder="21:00" maxlength="20"></div>
+      <div><label for="color">표시 색상</label><select id="color"><option value="blue">파랑</option><option value="purple">보라</option><option value="green">초록</option><option value="orange">주황</option><option value="pink">분홍</option></select></div>
+    </div>
+    <label for="note">메모 (선택)</label><textarea id="note" maxlength="500" placeholder="집결 장소, 준비물 등"></textarea>
+    <button class="btn" type="submit" id="saveBtn">저장하기</button>
+    <button class="btn secondary hidden" type="button" id="cancelEdit">수정 취소</button>
+  </form>
+</section>
+<section class="card">
+  <div class="sectiontop"><h2>백업 및 복원</h2><span class="pill">선택 사항</span></div>
+  <p class="sub">브라우저 데이터가 지워질 때를 대비해 백업 파일을 보관할 수 있어요.</p>
+  <div class="toolbar"><button class="btn secondary" id="exportBtn">백업 파일 저장</button><button class="btn secondary" id="importBtn">백업 불러오기</button></div>
+  <input class="hidden" type="file" id="fileInput" accept=".json,application/json">
+</section>
+<p class="smallprint">로그인 전에는 이 브라우저에만 저장됩니다. Firebase 설정과 Google 로그인을 완료한 뒤 같은 계정으로 로그인하면 PC와 폰 사이에 동기화됩니다. 가끔 백업 파일도 저장해 두는 것을 권장합니다.</p>
+</main>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const DAYS=['월','화','수','목','금','토','일'];
+const COLORS={blue:'#253a5b',purple:'#40315d',green:'#214a43',orange:'#59412c',pink:'#593342'};
+const KEY='partyTimeTable.v1';
+let selectedDay=0, editingId=null;
+let currentUser=null, firestore=null, unsubscribeDoc=null, applyingRemote=false;
+const firebaseConfig = {
+  apiKey: "AIzaSyCqCqCzkyCC9D5Sh2j9bNjFhNbxL6B094bc",
+  authDomain: "mapleboss96.firebaseapp.com",
+  projectId: "mapleboss96",
+  appId: "1:763889385931:web:b757cae985d93f5b5bf64e"
+};
+function isFirebaseConfigured(){
+  return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("PASTE_") &&
+         firebaseConfig.projectId && !firebaseConfig.projectId.startsWith("PASTE_") &&
+         firebaseConfig.appId && !firebaseConfig.appId.startsWith("PASTE_");
+}
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'{}');return x&&typeof x==='object'?x:{}}catch{return {}}}
+let data=load();
+function setStatus(message, isGood=false){
+  const el=document.getElementById('syncStatus');
+  if(el){el.textContent=message;el.style.color=isGood?'#9ce2bd':'var(--muted)'}
+}
+function updateAuthUI(){
+  const btn=document.getElementById('authBtn');
+  const email=document.getElementById('userLabel');
+  if(!btn || !email) return;
+  if(currentUser){
+    btn.textContent='로그아웃';
+    email.textContent=currentUser.email || 'Google 계정 연결됨';
+    setStatus('다른 기기와 동기화 중', true);
+  }else{
+    btn.textContent='Google로 로그인';
+    email.textContent='로그인하면 PC·폰 일정이 동기화돼요';
+    setStatus(isFirebaseConfigured()?'로그인하면 클라우드 동기화가 시작돼요':'Firebase 설정 후 동기화를 사용할 수 있어요');
+  }
+}
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(data));
+  if(currentUser && firestore && !applyingRemote){
+    setStatus('동기화 중…');
+    firestore.collection('users').doc(currentUser.uid).set({schedule:data, updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+      .then(()=>setStatus('저장됨 · PC와 폰 동기화 완료',true))
+      .catch(err=>{console.error(err);setStatus('클라우드 저장 실패 · 인터넷/설정 확인 필요')});
+  }
+}
+function startCloudSync(user){
+  if(unsubscribeDoc){unsubscribeDoc();unsubscribeDoc=null;}
+  currentUser=user; updateAuthUI();
+  if(!user || !firestore) return;
+  const ref=firestore.collection('users').doc(user.uid);
+  unsubscribeDoc=ref.onSnapshot(doc=>{
+    if(doc.exists && doc.data().schedule && typeof doc.data().schedule==='object'){
+      applyingRemote=true;
+      data=doc.data().schedule;
+      localStorage.setItem(KEY,JSON.stringify(data));
+      applyingRemote=false;
+      render();
+      setStatus('저장됨 · PC와 폰 동기화 완료',true);
+    }else{
+      // First login: upload this device's existing schedule if any.
+      const local=load();
+      if(Object.keys(local).length){
+        data=local; save();
+      }else{
+        data={}; localStorage.setItem(KEY,'{}'); render();
+      }
+      setStatus('클라우드 동기화 준비 완료',true);
+    }
+  },err=>{console.error(err);setStatus('동기화 오류 · Firebase 설정 확인 필요')});
+}
+function initCloud(){
+  if(!isFirebaseConfigured()){
+    updateAuthUI();
+    document.getElementById('authBtn').disabled=true;
+    document.getElementById('authHint').textContent='아래 안내대로 Firebase 설정값을 넣은 뒤 다시 게시해 주세요.';
+    return;
+  }
+  try{
+    firebase.initializeApp(firebaseConfig);
+    const auth=firebase.auth();
+    firestore=firebase.firestore();
+    auth.onAuthStateChanged(user=>startCloudSync(user));
+    document.getElementById('authBtn').disabled=false;
+    document.getElementById('authBtn').onclick=async()=>{
+      try{
+        if(currentUser){await auth.signOut();return;}
+        const provider=new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider);
+      }catch(err){
+        console.error(err);
+        alert('로그인에 실패했어요. Firebase의 Google 로그인 설정과 승인된 도메인을 확인해 주세요.\n'+err.message);
+      }
+    };
+  }catch(err){
+    console.error(err);setStatus('Firebase 초기화 실패 · 설정값 확인 필요');
+  }
+}
+function entries(){if(!Array.isArray(data[selectedDay]))data[selectedDay]=[];return data[selectedDay]}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderDays(){document.getElementById('days').innerHTML=DAYS.map((d,i)=>`<button class="day ${i===selectedDay?'active':''}" data-day="${i}">${d}</button>`).join('');document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{selectedDay=+b.dataset.day;closeEditor();render()})}
+function renderList(){
+ const arr=entries();document.getElementById('listTitle').textContent=DAYS[selectedDay]+'요일 파티';document.getElementById('count').textContent=`등록된 파티 ${arr.length}개`;
+ const root=document.getElementById('partyList');
+ if(!arr.length){root.innerHTML='<div class="empty"><b>아직 등록된 파티가 없어요</b>아래 버튼을 눌러 파티를 추가해 보세요.</div>';return}
+ root.innerHTML=arr.map(p=>`<div class="party"><div class="timebox" style="background:${COLORS[p.color]||COLORS.blue}">${esc(p.time||'시간 미정')}</div><div class="partyinfo"><div class="partyname">${esc(p.name)}</div>${p.note?`<div class="note">${esc(p.note)}</div>`:''}</div><div class="actions"><button class="iconbtn" data-edit="${esc(p.id)}" aria-label="수정">✎</button><button class="iconbtn" data-delete="${esc(p.id)}" aria-label="삭제">🗑</button></div></div>`).join('');
+ root.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(b.dataset.edit));
+ root.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{const p=arr.find(x=>x.id===b.dataset.delete);if(p&&confirm(`'${p.name}' 파티를 삭제할까요?`)){data[selectedDay]=arr.filter(x=>x.id!==p.id);save();render()}})
+}
+function renderOverview(){
+ const root=document.getElementById('weekOverview');
+ root.innerHTML=DAYS.map((d,i)=>{
+   const arr=Array.isArray(data[i])?data[i]:[];
+   const content=arr.length?`<div class="weekday-items">${arr.map(p=>`<div class="week-chip"><b>${esc(p.name)}</b><span>${esc(p.time||'시간 미정')}</span></div>`).join('')}</div>`:'<div class="week-empty">등록된 일정 없음</div>';
+   return `<div class="weekday-row ${i===selectedDay?'today-selected':''}" data-overview-day="${i}"><div class="weekday-label">${d}요일</div><div>${content}</div></div>`;
+ }).join('');
+ root.querySelectorAll('[data-overview-day]').forEach(el=>el.onclick=()=>{selectedDay=+el.dataset.overviewDay;closeEditor();render()});
+}
+function render(){renderDays();renderList();renderOverview()}
+function openEditor(id=null){editingId=id;const p=id?entries().find(x=>x.id===id):null;document.getElementById('editor').classList.remove('hidden');document.getElementById('formTitle').textContent=p?'파티 수정':'파티 추가';document.getElementById('name').value=p?.name||'';document.getElementById('time').value=p?.time||'';document.getElementById('note').value=p?.note||'';document.getElementById('color').value=p?.color||'blue';document.getElementById('cancelEdit').classList.toggle('hidden',!p);document.getElementById('saveBtn').textContent=p?'수정 저장':'저장하기';document.getElementById('editor').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('name').focus({preventScroll:true})}
+function closeEditor(){editingId=null;document.getElementById('editor').classList.add('hidden');document.getElementById('partyForm').reset()}
+document.getElementById('newBtn').onclick=()=>openEditor();
+document.getElementById('closeEditor').onclick=closeEditor;
+document.getElementById('cancelEdit').onclick=closeEditor;
+document.getElementById('partyForm').onsubmit=e=>{e.preventDefault();const p={id:editingId||((Date.now().toString(36))+Math.random().toString(36).slice(2,7)),name:document.getElementById('name').value.trim(),time:document.getElementById('time').value.trim(),note:document.getElementById('note').value.trim(),color:document.getElementById('color').value};if(!p.name)return;if(editingId){data[selectedDay]=entries().map(x=>x.id===editingId?p:x)}else{entries().push(p)}save();closeEditor();render()};
+document.getElementById('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='파티시간표_백업.json';a.click();URL.revokeObjectURL(url)};
+document.getElementById('importBtn').onclick=()=>document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const parsed=JSON.parse(await f.text());if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw Error();if(confirm('현재 일정이 백업 파일 내용으로 교체됩니다. 계속할까요?')){data=parsed;save();render();alert('백업을 불러왔어요.')}}catch{alert('올바른 파티 시간표 백업 파일이 아닙니다.')}e.target.value=''};
+render();
+initCloud();
+</script>
+</body></html>

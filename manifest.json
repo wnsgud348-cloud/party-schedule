@@ -1,0 +1,11 @@
+{
+  "name": "파티 시간표",
+  "short_name": "파티 시간표",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0d1422",
+  "theme_color": "#17243b",
+  "lang": "ko",
+  "description": "요일별 게임 파티 일정을 관리하고 여러 기기에서 동기화합니다.",
+  "icons": []
+}
