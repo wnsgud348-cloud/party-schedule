@@ -86,6 +86,21 @@ label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}input,te
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
 const DAYS=['월','화','수','목','금','토','일'];
+const timeInput = document.getElementById('time');
+
+timeInput.addEventListener('blur', () => {
+  const digits = timeInput.value.replace(/\D/g, '');
+
+  if (digits.length === 3 || digits.length === 4) {
+    const padded = digits.padStart(4, '0');
+    const hours = Number(padded.slice(0, 2));
+    const minutes = Number(padded.slice(2, 4));
+
+    if (hours < 24 && minutes < 60) {
+      timeInput.value = padded.slice(0, 2) + ':' + padded.slice(2, 4);
+    }
+  }
+});
 const COLORS={blue:'#253a5b',purple:'#40315d',green:'#214a43',orange:'#59412c',pink:'#593342'};
 const KEY='partyTimeTable.v1';
 let selectedDay=0, editingId=null;
