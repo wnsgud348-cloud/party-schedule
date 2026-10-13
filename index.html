@@ -186,7 +186,11 @@ function entries(){if(!Array.isArray(data[selectedDay]))data[selectedDay]=[];ret
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderDays(){document.getElementById('days').innerHTML=DAYS.map((d,i)=>`<button class="day ${i===selectedDay?'active':''}" data-day="${i}">${d}</button>`).join('');document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{selectedDay=+b.dataset.day;closeEditor();render()})}
 function renderList(){
- const arr=entries();document.getElementById('listTitle').textContent=DAYS[selectedDay]+'요일 파티';document.getElementById('count').textContent=`등록된 파티 ${arr.length}개`;
+ const arr=entries().slice().sort((a,b)=>{
+  const ta=/^([01]\d|2[0-3]):[0-5]\d$/.test(a.time||'')?a.time:'99:99';
+  const tb=/^([01]\d|2[0-3]):[0-5]\d$/.test(b.time||'')?b.time:'99:99';
+  return ta.localeCompare(tb);
+});;document.getElementById('listTitle').textContent=DAYS[selectedDay]+'요일 파티';document.getElementById('count').textContent=`등록된 파티 ${arr.length}개`;
  const root=document.getElementById('partyList');
  if(!arr.length){root.innerHTML='<div class="empty"><b>아직 등록된 파티가 없어요</b>아래 버튼을 눌러 파티를 추가해 보세요.</div>';return}
  root.innerHTML=arr.map(p=>`<div class="party"><div class="timebox" style="background:${COLORS[p.color]||COLORS.blue}">${esc(p.time||'시간 미정')}</div><div class="partyinfo"><div class="partyname">${esc(p.name)}</div>${p.note?`<div class="note">${esc(p.note)}</div>`:''}</div><div class="actions"><button class="iconbtn" data-edit="${esc(p.id)}" aria-label="수정">✎</button><button class="iconbtn" data-delete="${esc(p.id)}" aria-label="삭제">🗑</button></div></div>`).join('');
@@ -197,7 +201,14 @@ function renderOverview(){
  const root=document.getElementById('weekOverview');
  root.innerHTML=DAYS.map((d,i)=>{
    const arr=Array.isArray(data[i])?data[i]:[];
-   const content=arr.length?`<div class="weekday-items">${arr.map(p=>`<div class="week-chip"><b>${esc(p.name)}</b><span>${esc(p.time||'시간 미정')}</span></div>`).join('')}</div>`:'<div class="week-empty">등록된 일정 없음</div>';
+   
+const sorted=[...arr].sort((a,b)=>{
+  const ta=/^([01]\d|2[0-3]):[0-5]\d$/.test(a.time||'')?a.time:'99:99';
+  const tb=/^([01]\d|2[0-3]):[0-5]\d$/.test(b.time||'')?b.time:'99:99';
+  return ta.localeCompare(tb);
+});
+const content=sorted.length?`<div class="weekday-items">${sorted.map(p=>`<div class="week-chip" style="background:${COLORS[p.color]||COLORS.blue}"><b>${esc(p.name)}</b><span>${esc(p.time||'시간 미정')}</span></div>`).join('')}</div>`:'<div class="week-empty">등록된 일정 없음</div>';
+
    return `<div class="weekday-row ${i===selectedDay?'today-selected':''}" data-overview-day="${i}"><div class="weekday-label">${d}요일</div><div>${content}</div></div>`;
  }).join('');
  root.querySelectorAll('[data-overview-day]').forEach(el=>el.onclick=()=>{selectedDay=+el.dataset.overviewDay;closeEditor();render()});
