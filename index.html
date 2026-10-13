@@ -65,7 +65,7 @@ label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}input,te
   <form id="partyForm">
     <label for="name">파티명 / 보스명 *</label><input id="name" maxlength="70" placeholder="예: 하드 칼로스" required>
     <div class="formgrid">
-      <div><label for="time">시간</label><input id="time" placeholder="21:00" maxlength="20"></div>
+      <div><label for="time">시간</label><input id="time" type="text" inputmode="numeric" placeholder="21:00" maxlength="5"></div>
       <div><label for="color">표시 색상</label><select id="color"><option value="blue">파랑</option><option value="purple">보라</option><option value="green">초록</option><option value="orange">주황</option><option value="pink">분홍</option></select></div>
     </div>
     <label for="note">메모 (선택)</label><textarea id="note" maxlength="500" placeholder="집결 장소, 준비물 등"></textarea>
