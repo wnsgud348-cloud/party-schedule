@@ -1,8 +1,8 @@
 
 {
   "id": "./",
-  "name": "파티 시간표",
-  "short_name": "파티 시간표",
+  "name": "딸깍 파티격 시간표",
+  "short_name": "딸깍 파티격 시간표",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
